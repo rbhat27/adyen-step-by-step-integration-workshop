@@ -542,37 +542,61 @@ a:hover {
 .subscription-header h1 {
     margin: 0 0 8px;
     font-size: 32px;
+    color: #00112c;
+    font-weight: 700;
 }
 
 .subscription-header p {
     margin: 0;
-    color: #666;
+    color: #687282;
+    font-size: 16px;
 }
 
 .subscription-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 24px;
     margin-bottom: 40px;
 }
 
+@media screen and (max-width: 1200px) {
+    .subscription-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .subscription-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .subscription-panel {
     border: 1px solid #e6e9eb;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 24px;
     background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s ease;
+}
+
+.subscription-panel:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .subscription-panel h2 {
     margin-top: 0;
     margin-bottom: 8px;
     font-size: 20px;
+    color: #00112c;
+    font-weight: 600;
 }
 
 .subscription-help {
     margin: 0 0 24px;
-    color: #666;
+    color: #687282;
     font-size: 14px;
+    line-height: 1.5;
 }
 
 .payment-container {
@@ -598,6 +622,8 @@ a:hover {
     margin-top: 0;
     margin-bottom: 16px;
     font-size: 16px;
+    color: #00112c;
+    font-weight: 600;
 }
 
 .subscription-form {
@@ -610,6 +636,7 @@ a:hover {
     font-weight: 500;
     margin-bottom: 4px;
     font-size: 14px;
+    color: #00112c;
 }
 
 .label-required {
@@ -619,21 +646,22 @@ a:hover {
 .token-help {
     margin: 0 0 8px;
     font-size: 12px;
-    color: #666;
+    color: #687282;
     font-style: italic;
 }
 
 .subscription-form input {
-    padding: 10px;
+    padding: 12px 14px;
     border: 1px solid #e6e9eb;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .subscription-form input:focus {
     outline: none;
     border-color: #0abf53;
-    box-shadow: 0 0 0 2px rgba(10, 191, 83, 0.1);
+    box-shadow: 0 0 0 3px rgba(10, 191, 83, 0.15);
 }
 
 .subscription-inline {
@@ -644,8 +672,13 @@ a:hover {
 
 .subscription-inline-button {
     width: auto;
-    padding: 10px 16px;
+    padding: 12px 20px;
     margin: 0;
+    background: #0abf53;
+}
+
+.subscription-inline-button:hover {
+    background: #09a048;
 }
 
 .payment-method-info {
@@ -653,13 +686,14 @@ a:hover {
     padding: 16px;
     background: #f5f7fa;
     border-left: 4px solid #0abf53;
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 .payment-method-info h4 {
     margin: 0 0 12px;
     font-size: 14px;
     color: #00112c;
+    font-weight: 600;
 }
 
 .payment-method-info p {
@@ -689,25 +723,24 @@ a:hover {
 }
 
 .payment-method-info pre {
-    background: #fff;
+    background: #00112c;
     padding: 12px;
-    border-radius: 4px;
-    border: 1px solid #e6e9eb;
+    border-radius: 6px;
     overflow-x: auto;
     font-size: 11px;
     line-height: 1.4;
     margin: 8px 0;
+    color: #a0a0a0;
 }
 
 .payment-method-info pre code {
     background: none;
     padding: 0;
     border-radius: 0;
-    color: #00112c;
+    color: #7fdbb0;
 }
 
-
-
+/* Subscriptions List Styling */
 .subscriptions-list {
     margin-bottom: 24px;
 }
@@ -716,6 +749,10 @@ a:hover {
     color: #999;
     font-style: italic;
     margin: 0;
+    padding: 20px;
+    text-align: center;
+    background: #f7f8f9;
+    border-radius: 6px;
 }
 
 .subscriptions-table {
@@ -726,21 +763,35 @@ a:hover {
 
 .subscription-card {
     border: 1px solid #e6e9eb;
-    border-radius: 6px;
-    padding: 12px;
-    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 16px;
+    background: linear-gradient(135deg, #f7f8f9 0%, #fff 100%);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.subscription-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .subscription-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.subscription-card-header strong {
+    color: #00112c;
+    font-size: 14px;
 }
 
 .subscription-card-date {
     font-size: 12px;
     color: #999;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 4px;
 }
 
 .subscription-card-body {
@@ -748,37 +799,220 @@ a:hover {
 }
 
 .subscription-card-body p {
-    margin: 4px 0;
+    margin: 6px 0;
     font-size: 13px;
+    color: #555;
 }
 
 .subscription-card-body code {
-    background: #f0f0f0;
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-family: monospace;
-}
-
-.subscription-log {
     background: #00112c;
-    color: #e6e9eb;
-    padding: 12px;
-    border-radius: 8px;
-    min-height: 140px;
-    white-space: pre-wrap;
+    padding: 3px 8px;
+    border-radius: 4px;
     font-family: monospace;
     font-size: 12px;
+    color: #7fdbb0;
+}
+
+.subscription-card-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.subscription-card-status.ready {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.subscription-card-status.pending {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+
+/* Enhanced Log Display */
+.subscription-log {
+    background: linear-gradient(180deg, #0d1b2a 0%, #1b263b 100%);
+    color: #e0e0e0;
+    padding: 16px;
+    border-radius: 10px;
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    border: 1px solid #2d3e50;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.subscription-log::-webkit-scrollbar {
+    width: 8px;
+}
+
+.subscription-log::-webkit-scrollbar-track {
+    background: #0d1b2a;
+    border-radius: 4px;
+}
+
+.subscription-log::-webkit-scrollbar-thumb {
+    background: #3d5a80;
+    border-radius: 4px;
+}
+
+.subscription-log::-webkit-scrollbar-thumb:hover {
+    background: #4d6a90;
+}
+
+.subscription-log-entry {
+    padding: 8px 0;
+    border-bottom: 1px solid #2d3e50;
+}
+
+.subscription-log-entry:last-child {
+    border-bottom: none;
+}
+
+.subscription-log-timestamp {
+    color: #6c7a89;
+    font-size: 11px;
+}
+
+.subscription-log-message {
+    color: #e0e0e0;
+    margin-top: 4px;
+}
+
+.subscription-log-message.success {
+    color: #7fdbb0;
+}
+
+.subscription-log-message.error {
+    color: #ff6b6b;
+}
+
+.subscription-log-message.info {
+    color: #64b5f6;
+}
+
+.subscription-log-message.warning {
+    color: #ffd54f;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    padding: 16px 20px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease;
+    max-width: 350px;
+}
+
+.toast.success {
+    background: linear-gradient(135deg, #0abf53 0%, #07a045 100%);
+    border-left: 4px solid #07a045;
+}
+
+.toast.error {
+    background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+    border-left: 4px solid #c62828;
+}
+
+.toast.info {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    border-left: 4px solid #1565c0;
+}
+
+.toast.warning {
+    background: linear-gradient(135deg, #f9a825 0%, #f57f17 100%);
+    border-left: 4px solid #f57f17;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Button Improvements */
+.button {
+    background: linear-gradient(135deg, #00112c 0%, #0d1b2a 100%);
+    border: 0;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 8px;
+    padding: 14px 24px;
+    text-align: center;
+    transition: all 0.3s ease-out;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.button:hover {
+    background: linear-gradient(135deg, #0abf53 0%, #09a048 100%);
+    box-shadow: 0 4px 12px rgba(10, 191, 83, 0.3);
+    transform: translateY(-1px);
+}
+
+.button:active {
+    background: #09a048;
+    transform: translateY(0);
+}
+
+.button:disabled {
+    background: #e6e9eb;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .button-danger {
-    background: #d9534f;
+    background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
 }
 
 .button-danger:hover {
-    background: #c9302c;
-    box-shadow: 0 3px 4px rgba(201, 48, 44, 0.2);
+    background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.3);
 }
 
+/* Responsive Design */
 @media screen and (max-width: 1076px) {
     .subscription-grid {
         grid-template-columns: 1fr;
@@ -791,6 +1025,33 @@ a:hover {
 
     .subscription-inline-button {
         width: 100%;
+    }
+
+    .toast-container {
+        left: 20px;
+        right: 20px;
+    }
+
+    .toast {
+        max-width: 100%;
+    }
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }
 

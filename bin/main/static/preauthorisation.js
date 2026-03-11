@@ -20,15 +20,49 @@ function getAdyenWeb() {
     });
 }
 
+// Toast notification system
+function showToast(message, type = 'info') {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
 function setLog(message, payload) {
     const log = document.getElementById("preauth-log");
     if (!log) {
         return;
     }
 
-    const time = new Date().toLocaleTimeString();
-    const content = payload ? `${message}\n${JSON.stringify(payload, null, 2)}` : message;
-    log.textContent = `[${time}] ${content}`;
+    const timestamp = new Date().toLocaleTimeString();
+    
+    // Create structured log entry
+    let logHtml = `<div class="subscription-log-entry">`;
+    logHtml += `<div class="subscription-log-timestamp">[${timestamp}]</div>`;
+    logHtml += `<div class="subscription-log-message">${message}</div>`;
+    
+    if (payload) {
+        logHtml += `<pre style="margin-top: 8px; color: #a0a0a0; font-size: 11px;">${JSON.stringify(payload, null, 2)}</pre>`;
+    }
+    logHtml += `</div>`;
+
+    // Add to beginning of log
+    log.innerHTML = logHtml + log.innerHTML;
+    console.log(`[${timestamp}] ${message}`, payload);
 }
 
 function updatePspReference(pspReference) {
@@ -41,23 +75,40 @@ function updatePspReference(pspReference) {
         input.value = pspReference;
     }
     setLog("Stored PSP reference", { pspReference });
+    showToast(`PSP Reference stored: ${pspReference}`, "success");
 }
 
 async function runApi(path, body) {
-    const response = await fetch(path, {
-        method: "POST",
-        body: JSON.stringify(body || {}),
-        headers: {
-            "Content-Type": "application/json"
-        }
-    });
+    try {
+        const response = await fetch(path, {
+            method: "POST",
+            body: JSON.stringify(body || {}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
 
-    const json = await response.json();
-    setLog(`${path} response`, json);
-    if (json && json.pspReference) {
-        updatePspReference(json.pspReference);
+        const json = await response.json();
+        setLog(`${path} response`, json);
+        
+        if (json && json.pspReference) {
+            updatePspReference(json.pspReference);
+        }
+
+        // Show toast based on response
+        if (json && json.status === "success") {
+            showToast(json.message || "Operation successful", "success");
+        } else if (json && json.error) {
+            showToast(json.message || "Operation failed", "error");
+        }
+
+        return json;
+    } catch (error) {
+        console.error(error);
+        setLog("API Error", { message: error.message });
+        showToast("Error: " + error.message, "error");
+        throw error;
     }
-    return json;
 }
 
 async function startPreauthCheckout() {
@@ -105,10 +156,12 @@ async function startPreauthCheckout() {
                     }
 
                     if (!response.resultCode) {
+                        showToast("Preauthorisation failed", "error");
                         actions.reject();
                         return;
                     }
 
+                    showToast(`Preauthorisation ${response.resultCode}`, response.resultCode === "Authorised" ? "success" : "warning");
                     actions.resolve({
                         resultCode: response.resultCode,
                         action: response.action,
@@ -117,20 +170,24 @@ async function startPreauthCheckout() {
                 } catch (error) {
                     console.error(error);
                     setLog("Preauthorisation error", { message: error.message });
+                    showToast("Preauthorisation error", "error");
                     actions.reject();
                 }
             },
             onPaymentCompleted: (result, component) => {
                 console.info("onPaymentCompleted", result, component);
                 setLog("Payment completed", result);
+                showToast("Payment completed successfully", "success");
             },
             onPaymentFailed: (result, component) => {
                 console.info("onPaymentFailed", result, component);
                 setLog("Payment failed", result);
+                showToast("Payment failed", "error");
             },
             onError: (error, component) => {
                 console.error("onError", error.name, error.message, error.stack, component);
                 setLog("Checkout error", { name: error.name, message: error.message });
+                showToast("Checkout error: " + error.message, "error");
             },
             onAdditionalDetails: async (stateData, component, actions) => {
                 try {
@@ -144,14 +201,17 @@ async function startPreauthCheckout() {
 
                     setLog("/api/payments/details response", response);
                     if (!response.resultCode) {
+                        showToast("Details submission failed", "error");
                         actions.reject();
                         return;
                     }
 
+                    showToast(`Details processed: ${response.resultCode}`, "info");
                     actions.resolve({ resultCode: response.resultCode });
                 } catch (error) {
                     console.error(error);
                     setLog("Details error", { message: error.message });
+                    showToast("Details error", "error");
                     actions.reject();
                 }
             }
@@ -179,9 +239,12 @@ async function startPreauthCheckout() {
 
         const adyenCheckout = await AdyenCheckout(configuration);
         new Dropin(adyenCheckout, { paymentMethodsConfiguration }).mount(document.getElementById("payment"));
+        
+        setLog("Checkout initialized", { environment: "test" });
     } catch (error) {
         console.error(error);
         setLog("Checkout init error", { message: error.message });
+        showToast("Checkout initialization error", "error");
     }
 }
 
@@ -208,11 +271,13 @@ function initButtons() {
         useLastBtn.addEventListener("click", () => {
             if (!state.lastPspReference) {
                 setLog("No PSP reference available yet");
+                showToast("No PSP reference available yet", "warning");
                 return;
             }
             const input = document.getElementById("pspReference");
             if (input) {
                 input.value = state.lastPspReference;
+                showToast("PSP reference loaded", "success");
             }
         });
     }
@@ -224,8 +289,10 @@ function initButtons() {
             const modifyAmount = getAmountValue("modifyAmount");
             if (!pspReference || modifyAmount === null) {
                 setLog("PSP reference and modify amount are required");
+                showToast("PSP reference and modify amount are required", "warning");
                 return;
             }
+            showToast("Adjusting authorisation...", "info");
             await runApi("/api/modify-amount", { pspReference, modifyAmount });
         });
     }
@@ -237,8 +304,10 @@ function initButtons() {
             const captureAmount = getAmountValue("captureAmount");
             if (!pspReference || captureAmount === null) {
                 setLog("PSP reference and capture amount are required");
+                showToast("PSP reference and capture amount are required", "warning");
                 return;
             }
+            showToast("Capturing payment...", "info");
             await runApi("/api/capture", { pspReference, captureAmount });
         });
     }
@@ -250,8 +319,10 @@ function initButtons() {
             const refundAmount = getAmountValue("refundAmount");
             if (!pspReference || refundAmount === null) {
                 setLog("PSP reference and refund amount are required");
+                showToast("PSP reference and refund amount are required", "warning");
                 return;
             }
+            showToast("Processing refund...", "info");
             await runApi("/api/refund", { pspReference, refundAmount });
         });
     }
@@ -262,8 +333,10 @@ function initButtons() {
             const pspReference = getInputValue("pspReference");
             if (!pspReference) {
                 setLog("PSP reference is required");
+                showToast("PSP reference is required", "warning");
                 return;
             }
+            showToast("Cancelling payment...", "info");
             await runApi("/api/cancel", { pspReference });
         });
     }
@@ -271,3 +344,4 @@ function initButtons() {
 
 initButtons();
 startPreauthCheckout();
+

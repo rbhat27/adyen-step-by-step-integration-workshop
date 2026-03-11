@@ -20,15 +20,45 @@ function getAdyenWeb() {
     });
 }
 
+// Toast notification system
+function showToast(message, type = 'info') {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
 function logEvent(message, data = null) {
     const logElement = document.getElementById("subscription-log");
     const timestamp = new Date().toLocaleTimeString();
-    let logMessage = `[${timestamp}] ${message}`;
+    
+    // Create structured log entry
+    let logHtml = `<div class="subscription-log-entry">`;
+    logHtml += `<div class="subscription-log-timestamp">[${timestamp}]</div>`;
+    logHtml += `<div class="subscription-log-message">${message}</div>`;
+    
     if (data) {
-        logMessage += `\n${JSON.stringify(data, null, 2)}`;
+        logHtml += `<pre style="margin-top: 8px; color: #a0a0a0; font-size: 11px;">${JSON.stringify(data, null, 2)}</pre>`;
     }
-    logElement.innerText = logMessage + "\n---\n" + logElement.innerText;
-    console.log(logMessage, data);
+    logHtml += `</div>`;
+
+    // Add to beginning of log
+    logElement.innerHTML = logHtml + logElement.innerHTML;
+    console.log(`[${timestamp}] ${message}`, data);
 }
 
 function displaySubscriptions() {
@@ -40,13 +70,21 @@ function displaySubscriptions() {
         return;
     }
 
+    // Sort by creation date and limit to last 5
+    const sortedIds = subIds.sort((a, b) => {
+        const dateA = new Date(subscriptions[a].createdAt || 0);
+        const dateB = new Date(subscriptions[b].createdAt || 0);
+        return dateB - dateA;
+    }).slice(0, 5);
+
     let html = '<div class="subscriptions-table">';
-    subIds.forEach(shopperRef => {
+    sortedIds.forEach(shopperRef => {
         const sub = subscriptions[shopperRef];
         const tokenDisplay = sub.token 
             ? `<code>${sub.token.substring(0, 20)}...</code>` 
-            : `<span style="color: orange;">⏳ Awaiting webhook...</span>`;
-        const statusDisplay = sub.tokenReceived ? "✅ Ready" : "⏳ Pending";
+            : `<span style="color: #f39c12;">Awaiting webhook...</span>`;
+        const statusClass = sub.tokenReceived ? 'ready' : 'pending';
+        const statusText = sub.tokenReceived ? 'Ready' : 'Pending';
         
         html += `
             <div class="subscription-card">
@@ -56,12 +94,17 @@ function displaySubscriptions() {
                 </div>
                 <div class="subscription-card-body">
                     <p><strong>Token:</strong> ${tokenDisplay}</p>
-                    <p><strong>Status:</strong> ${statusDisplay}</p>
+                    <p><strong>Status:</strong> <span class="subscription-card-status ${statusClass}">${statusText}</span></p>
                 </div>
             </div>
         `;
     });
     html += '</div>';
+    
+    if (subIds.length > 5) {
+        html += `<p class="subscription-empty">Showing last 5 of ${subIds.length} subscriptions</p>`;
+    }
+    
     list.innerHTML = html;
 }
 
@@ -131,6 +174,7 @@ async function startCheckout() {
             onPaymentFailed: (result, component) => {
                 console.info("onPaymentFailed", result, component);
                 logEvent("Subscription creation failed", result);
+                showToast("Subscription creation failed. Please try again.", "error");
             },
             onError: (error, component) => {
                 console.error("onError", error.name, error.message, error.stack, component);
@@ -138,6 +182,7 @@ async function startCheckout() {
                     name: error.name,
                     message: error.message
                 });
+                showToast("An error occurred. Check console for details.", "error");
             }
         };
 
@@ -165,10 +210,12 @@ async function startCheckout() {
         // Start the AdyenCheckout and mount the element onto the `payment`-div.
         const adyenCheckout = await AdyenCheckout(configuration);
         const dropin = new Dropin(adyenCheckout, { paymentMethodsConfiguration: paymentMethodsConfiguration }).mount(document.getElementById("payment"));
+        
+        logEvent("Checkout initialized successfully", { environment: "test" });
     } catch (error) {
         console.error(error);
         logEvent("Error initializing subscription checkout", error);
-        alert("Error occurred. Look at console for details.");
+        showToast("Error occurred. Look at console for details.", "error");
     }
 }
 
@@ -176,6 +223,7 @@ function handleSubscriptionCompleted(response) {
     const shopperRef = document.getElementById("shopperReference").value;
     
     logEvent("Subscription created successfully", response);
+    showToast("Subscription created! Waiting for webhook confirmation.", "success");
 
     // The real token will come from the RECURRING_CONTRACT webhook
     // DO NOT use fake tokens like `token-${Date.now()}`
@@ -195,14 +243,14 @@ function handleSubscriptionCompleted(response) {
 
         // Show message instructing user to watch for webhook callback
         setTimeout(() => {
-            alert(`Subscription created for ${shopperRef}. \n\nWaiting for confirmation webhook...  \n\nThe RECURRING_CONTRACT webhook will contain the actual token. You can copy it from the server logs or debug panel once it arrives.\n\nUse the token in the "Make a Recurring Payment" section to charge this subscription.`);
-        }, 500);
+            showToast("Webhook will contain the actual token. Use it in the payment section.", "info");
+        }, 1500);
     } else if (shopperRef) {
         logEvent("Subscription creation incomplete", {
             resultCode: response.resultCode,
-            expectedResut: "Authorised"
+            expectedResult: "Authorised"
         });
-        alert(`Subscription creation failed with result: ${response.resultCode}`);
+        showToast(`Subscription creation failed: ${response.resultCode}`, "error");
     }
 }
 
@@ -213,17 +261,18 @@ document.getElementById("chargeBtn").addEventListener("click", async () => {
     const paymentAmount = parseFloat(document.getElementById("paymentAmount").value) * 100; // Convert to minor units
 
     if (!shopperReference) {
-        alert("Please enter a shopper reference");
+        showToast("Please enter a shopper reference", "warning");
         return;
     }
 
     if (!recurringToken) {
-        alert("Please enter the recurring detail reference (token). You can get this from the RECURRING_CONTRACT webhook log below.");
+        showToast("Please enter the recurring detail reference (token)", "warning");
         return;
     }
 
     try {
-        logEvent("Making recurring payment", { shopperReference, recurringToken, amount: paymentAmount });
+        logEvent("Processing recurring payment", { shopperReference, amount: paymentAmount });
+        showToast("Processing payment...", "info");
 
         const response = await fetch("/api/subscription-payment", {
             method: "POST",
@@ -237,19 +286,19 @@ document.getElementById("chargeBtn").addEventListener("click", async () => {
             }
         }).then(response => response.json());
 
-        logEvent("Recurring payment response", response);
+        logEvent("Payment response received", response);
 
         if (response.resultCode === "Authorised") {
-            alert(`Payment of EUR ${(paymentAmount / 100).toFixed(2)} successful!`);
+            showToast(`Payment of EUR ${(paymentAmount / 100).toFixed(2)} successful!`, "success");
         } else if (response.resultCode === "Pending") {
-            alert(`Payment pending for shopper ${shopperReference}`);
+            showToast(`Payment pending for shopper ${shopperReference}`, "warning");
         } else {
-            alert(`Payment declined: ${response.resultCode}`);
+            showToast(`Payment declined: ${response.resultCode || 'Unknown error'}`, "error");
         }
     } catch (error) {
         console.error(error);
         logEvent("Error making recurring payment", error);
-        alert("Error making recurring payment. Check console for details.");
+        showToast("Error making recurring payment. Check console for details.", "error");
     }
 });
 
@@ -259,12 +308,13 @@ document.getElementById("cancelBtn").addEventListener("click", async () => {
     const recurringRef = document.getElementById("cancelRecurringRef").value;
 
     if (!shopperRef || !recurringRef) {
-        alert("Please enter both shopper reference and recurring detail reference");
+        showToast("Please enter both shopper reference and recurring detail reference", "warning");
         return;
     }
 
     try {
         logEvent("Cancelling subscription", { shopperRef, recurringRef });
+        showToast("Cancelling subscription...", "info");
 
         const response = await fetch("/api/subscriptions-cancel", {
             method: "POST",
@@ -277,23 +327,24 @@ document.getElementById("cancelBtn").addEventListener("click", async () => {
             }
         }).then(response => response.json());
 
-        logEvent("Subscription cancellation response", response);
+        logEvent("Cancellation response received", response);
 
         if (response.status === "cancelled") {
-            alert(`Subscription cancelled for ${shopperRef}`);
+            showToast(`Subscription cancelled for ${shopperRef}`, "success");
             delete subscriptions[shopperRef];
             localStorage.setItem("subscriptions", JSON.stringify(subscriptions));
             displaySubscriptions();
         } else {
-            alert(`Error: ${response.message}`);
+            showToast(`Error: ${response.message || 'Unknown error'}`, "error");
         }
     } catch (error) {
         console.error(error);
         logEvent("Error cancelling subscription", error);
-        alert("Error cancelling subscription. Check console for details.");
+        showToast("Error cancelling subscription. Check console for details.", "error");
     }
 });
 
 // Initialize on page load
 displaySubscriptions();
 startCheckout();
+

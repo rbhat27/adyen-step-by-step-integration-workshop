@@ -554,9 +554,21 @@ a:hover {
 
 .subscription-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 24px;
     margin-bottom: 40px;
+}
+
+@media screen and (max-width: 1200px) {
+    .subscription-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .subscription-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .subscription-panel {
