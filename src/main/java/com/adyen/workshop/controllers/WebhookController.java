@@ -53,6 +53,12 @@ public class WebhookController {
    @PostMapping("/webhooks")
    public ResponseEntity<String> webhooks(@RequestBody String json) throws Exception {
        log.info("Received: {}", json);
+       
+       // IMPORTANT DEBUG: Log that webhook was received
+       System.out.println("\n╔════════════════════════════════════════════╗");
+       System.out.println("║        🔔 WEBHOOK RECEIVED AT SERVER       ║");
+       System.out.println("╚════════════════════════════════════════════╝");
+       
        var notificationRequest = NotificationRequest.fromJson(json);
        var notificationRequestItem = notificationRequest.getNotificationItems().stream().findFirst();
 
@@ -64,74 +70,97 @@ public class WebhookController {
            // Step 16 - Validate the HMAC signature using the ADYEN_HMAC_KEY
            if (!hmacValidator.validateHMAC(item, this.applicationConfiguration.getAdyenHmacKey())) {
                log.warn("Could not validate HMAC signature for incoming webhook message: {}", item);
+               System.out.println("❌ HMAC VALIDATION FAILED");
+               System.out.println("===========================================\n");
                return ResponseEntity.unprocessableEntity().build();
            }
 
 
            // Step 17 - Handle webhooks
            String eventCode = item.getEventCode();
+           System.out.println("Event Code: " + eventCode);
+           System.out.println("PSP Reference: " + item.getPspReference());
+           System.out.println("Success: " + item.isSuccess());
            log.info("Handling webhook event: {}", eventCode);
 
 
            switch (eventCode) {
                // Tokenization webhooks
                case "RECURRING_CONTRACT":
+                   System.out.println("→ Routing to: handleRecurringContractWebhook()");
                    // Handle RECURRING_CONTRACT webhook
                    // This webhook contains the recurringDetailReference (token) we need for future payments
                    handleRecurringContractWebhook(item);
                    break;
                case "AUTHORISATION":
+                   System.out.println("→ Routing to: handleAuthorisationWebhook()");
                    // Handle AUTHORISATION webhook
                    handleAuthorisationWebhook(item);
                    break;
                // Preauthorisation webhooks
                case "AUTHORISATION_ADJUSTMENT":
+                   System.out.println("→ Routing to: handleAuthorisationAdjustmentWebhook()");
                    // Handle authorization adjustment webhook
                    handleAuthorisationAdjustmentWebhook(item);
                    break;
                case "CAPTURE":
+                   System.out.println("→ Routing to: handleCaptureWebhook()");
                    // Handle capture webhook
                    handleCaptureWebhook(item);
                    break;
                case "CAPTURE_FAILED":
+                   System.out.println("→ Routing to: handleCaptureFailedWebhook()");
                    // Handle capture failed webhook
                    handleCaptureFailedWebhook(item);
                    break;
                case "TECHNICAL_CANCEL":
+                   System.out.println("→ Routing to: handleTechnicalCancelWebhook()");
                    // Handle technical cancellation webhook
                    handleTechnicalCancelWebhook(item);
                    break;
                case "CANCELLATION":
+                   System.out.println("→ Routing to: handleCancellationWebhook()");
                    // Handle cancellation webhook
                    handleCancellationWebhook(item);
                    break;
                case "REFUND":
+                   System.out.println("→ Routing to: handleRefundWebhook()");
                    // Handle refund webhook
                    handleRefundWebhook(item);
                    break;
                case "REFUND_FAILED":
+                   System.out.println("→ Routing to: handleRefundFailedWebhook()");
                    // Handle refund failed webhook
                    handleRefundFailedWebhook(item);
                    break;
                case "REFUNDED_REVERSED":
+                   System.out.println("→ Routing to: handleRefundedReversedWebhook()");
                    // Handle refunded reversed webhook
                    handleRefundedReversedWebhook(item);
                    break;
                default:
+                   System.out.println("⚠️ Unhandled webhook event code: " + eventCode);
                    log.info("Unhandled webhook event code: {}", eventCode);
            }
 
 
            // Success, log it for now
+           System.out.println("✅ Webhook processed successfully");
+           System.out.println("===========================================\n");
            log.info("Received webhook with event {}", item.toString());
 
 
            return ResponseEntity.ok("[accepted]");
        } catch (SignatureException e) {
            // Handle invalid signature
+           System.out.println("❌ SIGNATURE EXCEPTION");
+           System.out.println("===========================================\n");
            return ResponseEntity.unprocessableEntity().build();
        } catch (Exception e) {
            // Handle all other errors
+           System.out.println("❌ EXCEPTION: " + e.getMessage());
+           e.printStackTrace();
+           System.out.println("===========================================\n");
            return ResponseEntity.status(500).build();
        }
    }
@@ -145,21 +174,22 @@ public class WebhookController {
        log.info("Processing RECURRING_CONTRACT webhook");
        
        // Log all available data
-       System.out.println("\n=== RECURRING_CONTRACT WEBHOOK DEBUG ===");
+       System.out.println("\n╔════════════════════════════════════════════╗");
+       System.out.println("║  ✅ RECURRING_CONTRACT WEBHOOK RECEIVED   ║");
+       System.out.println("╚════════════════════════════════════════════╝");
        System.out.println("PSP Reference: " + item.getPspReference());
        System.out.println("Merchant Reference: " + item.getMerchantReference());
        System.out.println("Event Code: " + item.getEventCode());
        
        // Log all additional data fields
        if (item.getAdditionalData() != null && !item.getAdditionalData().isEmpty()) {
-           System.out.println("Additional Data fields:");
+           System.out.println("\n📋 Additional Data fields:");
            item.getAdditionalData().forEach((key, value) -> {
                System.out.println("  " + key + " = " + value);
            });
        } else {
            System.out.println("No additional data found");
        }
-       System.out.println("=====================================\n");
       
        // Try multiple field names for the token
        String recurringDetailReference = null;
@@ -201,14 +231,21 @@ public class WebhookController {
            
            tokenStorage.put(shopperReference, recurringDetailReference);
           
+           System.out.println("\n🎯 TOKEN SUCCESSFULLY STORED:");
+           System.out.println("   Token/Recurring Detail Ref: " + recurringDetailReference);
+           System.out.println("   Shopper Reference: " + shopperReference);
+           System.out.println("   Token Length: " + recurringDetailReference.length());
+           System.out.println("===========================================\n");
+           
            log.info("✅ STORED TOKEN - Shopper: {}, Token: {}", shopperReference, recurringDetailReference);
-           System.out.println("✅ TOKEN STORED: " + recurringDetailReference + " for shopper: " + shopperReference);
        } else {
+           System.out.println("\n❌ NO TOKEN FOUND in RECURRING_CONTRACT webhook");
+           System.out.println("   Checked fields:\n" +
+               "     - recurring.recurringDetailReference\n" +
+               "     - tokenization.storedPaymentMethodId\n" +
+               "     - PSP Reference");
+           System.out.println("===========================================\n");
            log.warn("❌ NO TOKEN FOUND in RECURRING_CONTRACT webhook");
-           System.out.println("❌ NO TOKEN REFERENCE FOUND IN:\n" + 
-               "  - recurring.recurringDetailReference\n" +
-               "  - tokenization.storedPaymentMethodId\n" +
-               "  - PSP Reference");
        }
    }
 
@@ -221,6 +258,62 @@ public class WebhookController {
        log.info("Processing AUTHORISATION webhook");
        log.info("Payment reference: {}", item.getPspReference());
        log.info("Merchant reference: {}", item.getMerchantReference());
+       
+       // Log all available data for debugging
+       System.out.println("\n╔════════════════════════════════════════════╗");
+       System.out.println("║     ✅ AUTHORISATION WEBHOOK RECEIVED     ║");
+       System.out.println("╚════════════════════════════════════════════╝");
+       System.out.println("PSP Reference: " + item.getPspReference());
+       System.out.println("Merchant Reference: " + item.getMerchantReference());
+       System.out.println("Success: " + item.isSuccess());
+       System.out.println("Event Code: " + item.getEventCode());
+       
+       // Log all additional data fields
+       if (item.getAdditionalData() != null && !item.getAdditionalData().isEmpty()) {
+           System.out.println("\n📋 Additional Data fields:");
+           item.getAdditionalData().forEach((key, value) -> {
+               System.out.println("  " + key + " = " + value);
+           });
+       } else {
+           System.out.println("No additional data found");
+       }
+       
+       // Extract and log token information if present
+       if (item.getAdditionalData() != null) {
+           String storedPaymentMethodId = item.getAdditionalData().get("tokenization.storedPaymentMethodId");
+           String recurringDetailReference = item.getAdditionalData().get("recurring.recurringDetailReference");
+           String shopperReference = item.getAdditionalData().get("tokenization.shopperReference");
+           String recurringModel = item.getAdditionalData().get("recurringProcessingModel");
+           
+           if (storedPaymentMethodId != null && !storedPaymentMethodId.isEmpty()) {
+               System.out.println("\n🎯 TOKEN INFORMATION FOUND IN AUTH:");
+               System.out.println("   Stored Payment Method ID: " + storedPaymentMethodId);
+               System.out.println("   Shopper Reference: " + shopperReference);
+               System.out.println("   Recurring Model: " + recurringModel);
+               
+               // Store token if available
+               if (shopperReference != null && !shopperReference.isEmpty()) {
+                   tokenStorage.put(shopperReference, storedPaymentMethodId);
+                   log.info("✅ TOKEN STORED FROM AUTH - Shopper: {}, Token: {}", shopperReference, storedPaymentMethodId);
+               }
+           } else if (recurringDetailReference != null && !recurringDetailReference.isEmpty()) {
+               System.out.println("\n🎯 TOKEN INFORMATION FOUND IN AUTH (Legacy):");
+               System.out.println("   Recurring Detail Reference: " + recurringDetailReference);
+               String shopperRef = item.getAdditionalData().get("recurring.shopperReference");
+               if (shopperRef != null && !shopperRef.isEmpty()) {
+                   tokenStorage.put(shopperRef, recurringDetailReference);
+               }
+           } else {
+               if (item.isSuccess()) {
+                   System.out.println("\n⚠️  Authorization successful but no token information found");
+                   System.out.println("    This could be a standard payment or a subsequent subscription payment");
+               } else {
+                   System.out.println("\n❌ Authorization FAILED");
+                   System.out.println("    No token information found");
+               }
+           }
+       }
+       System.out.println("===========================================\n");
       
        log.info("Authorization processed for reference: {}", item.getPspReference());
    }
@@ -361,6 +454,37 @@ public class WebhookController {
     */
    public static String getToken(String shopperReference) {
        return tokenStorage.get(shopperReference);
+   }
+
+   /**
+    * Store a token for a shopper
+    * This can be called directly from API responses or from webhooks
+    */
+   public static void storeToken(String shopperReference, String token) {
+       if (shopperReference != null && token != null && !shopperReference.isEmpty() && !token.isEmpty()) {
+           tokenStorage.put(shopperReference, token);
+           System.out.println("📌 Token stored: " + shopperReference + " -> " + token);
+       }
+   }
+
+   /**
+    * Remove a token for a shopper (when subscription is cancelled)
+    */
+   public static void removeToken(String shopperReference) {
+       if (shopperReference != null && !shopperReference.isEmpty()) {
+           String removed = tokenStorage.remove(shopperReference);
+           if (removed != null) {
+               System.out.println("🗑️  Token removed: " + shopperReference + " (was: " + removed + ")");
+           }
+       }
+   }
+
+   /**
+    * Get all stored tokens
+    * This is used for debugging
+    */
+   public static Map<String, String> getAllTokens() {
+       return new HashMap<>(tokenStorage);
    }
 
    /**

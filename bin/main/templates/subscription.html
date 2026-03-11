@@ -1,0 +1,103 @@
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Subscription Management</title>
+</head>
+<body>
+<div layout:fragment="content" class="subscription-page">
+    <div id="clientKey" class="hidden" th:text="${clientKey}"></div>
+
+    <div class="subscription-header">
+        <h1>Subscription Management</h1>
+        <p>Use this screen to create subscriptions, make recurring payments, and manage your stored payment methods.</p>
+    </div>
+
+    <div class="subscription-grid">
+        <!-- Section 1: Create Subscription (Zero-Auth) -->
+        <div class="subscription-panel">
+            <h2>1) Create Subscription (Zero-Auth)</h2>
+            <p class="subscription-help">Complete a zero-value payment with Drop-in to tokenize your card for recurring payments.</p>
+            <div class="payment-container">
+                <div id="payment" class="payment"></div>
+            </div>
+        </div>
+
+        <!-- Section 2: Manage Subscriptions -->
+        <div class="subscription-panel">
+            <h2>2) Manage Your Subscriptions</h2>
+            
+            <div class="subscription-section">
+                <h3>Stored Cards</h3>
+                <div id="subscriptions-list" class="subscriptions-list">
+                    <p class="subscription-empty">No subscriptions yet. Create one to get started.</p>
+                </div>
+            </div>
+
+            <div class="subscription-section">
+                <h3>Make a Recurring Payment</h3>
+                <div class="subscription-form">
+                    <label for="shopperReference">Shopper Reference</label>
+                    <input id="shopperReference" type="text" placeholder="e.g., shopper-001"/>
+
+                    <label for="recurringToken">Recurring Detail Reference (Token) <span class="label-required">*</span></label>
+                    <p class="token-help">Get this from the RECURRING_CONTRACT webhook log below. Copy the token value.</p>
+                    <input id="recurringToken" type="text" placeholder="Paste token from webhook here"/>
+
+                    <label for="paymentAmount">Payment Amount (EUR)</label>
+                    <div class="subscription-inline">
+                        <input id="paymentAmount" type="number" min="0" step="0.01" value="5.00"/>
+                        <button id="chargeBtn" class="button subscription-inline-button" type="button">Charge Subscription</button>
+                    </div>
+
+                    <div class="payment-method-info">
+                        <h4>Test Payment Method Reference</h4>
+                        <p><strong>Format:</strong> The API expects a paymentMethod object with:</p>
+                        <ul>
+                            <li><code>type</code>: "card" (for stored cards)</li>
+                            <li><code>storedPaymentMethodId</code>: The token from your webhook</li>
+                        </ul>
+                        <p><strong>Example cURL test:</strong></p>
+                        <pre><code>curl -X POST https://checkout-test.adyen.com/v70/payments \
+  -H 'x-API-key: YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": {"value": 500, "currency": "EUR"},
+    "paymentMethod": {
+      "type": "card",
+      "storedPaymentMethodId": "YOUR_STORED_TOKEN_FROM_WEBHOOK"
+    },
+    "reference": "YOUR_ORDER_NUMBER",
+    "merchantAccount": "YOUR_MERCHANT_ACCOUNT",
+    "returnUrl": "http://localhost:8080/handleShopperRedirect",
+    "shopperReference": "YOUR_UNIQUE_SHOPPER_ID",
+    "shopperInteraction": "ContAuth",
+    "recurringProcessingModel": "Subscription"
+  }'</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subscription-section">
+                <h3>Cancel Subscription</h3>
+                <div class="subscription-form">
+                    <label for="cancelShopperRef">Shopper Reference</label>
+                    <input id="cancelShopperRef" type="text" placeholder="e.g., shopper-001"/>
+
+                    <label for="cancelRecurringRef">Recurring Detail Reference (Token)</label>
+                    <input id="cancelRecurringRef" type="text" placeholder="Token from webhook"/>
+
+                    <button id="cancelBtn" class="button button-danger" type="button">Cancel Subscription</button>
+                </div>
+            </div>
+
+            <h3>Latest Response</h3>
+            <pre id="subscription-log" class="subscription-log">Waiting for actions…</pre>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="/subscription.js"></script>
+</div>
+</body>
+</html>
