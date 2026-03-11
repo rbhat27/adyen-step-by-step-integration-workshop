@@ -70,8 +70,15 @@ function displaySubscriptions() {
         return;
     }
 
+    // Sort by creation date and limit to last 5
+    const sortedIds = subIds.sort((a, b) => {
+        const dateA = new Date(subscriptions[a].createdAt || 0);
+        const dateB = new Date(subscriptions[b].createdAt || 0);
+        return dateB - dateA;
+    }).slice(0, 5);
+
     let html = '<div class="subscriptions-table">';
-    subIds.forEach(shopperRef => {
+    sortedIds.forEach(shopperRef => {
         const sub = subscriptions[shopperRef];
         const tokenDisplay = sub.token 
             ? `<code>${sub.token.substring(0, 20)}...</code>` 
@@ -93,6 +100,11 @@ function displaySubscriptions() {
         `;
     });
     html += '</div>';
+    
+    if (subIds.length > 5) {
+        html += `<p class="subscription-empty">Showing last 5 of ${subIds.length} subscriptions</p>`;
+    }
+    
     list.innerHTML = html;
 }
 
