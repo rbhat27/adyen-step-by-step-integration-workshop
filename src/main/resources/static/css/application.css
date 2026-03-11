@@ -530,8 +530,9 @@ a:hover {
 
 .subscription-page {
     margin: 100px auto 0;
-    max-width: 1048px;
-    padding: 0 16px;
+    max-width: 100%;
+    padding: 0 24px;
+    width: 100%;
 }
 
 .subscription-header {
@@ -557,9 +558,16 @@ a:hover {
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
     margin-bottom: 40px;
+    width: 100%;
 }
 
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 1400px) {
+    .subscription-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media screen and (max-width: 1100px) {
     .subscription-grid {
         grid-template-columns: 1fr 1fr;
     }
@@ -574,10 +582,11 @@ a:hover {
 .subscription-panel {
     border: 1px solid #e6e9eb;
     border-radius: 12px;
-    padding: 24px;
+    padding: 28px;
     background: #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     transition: box-shadow 0.3s ease;
+    min-height: 500px;
 }
 
 .subscription-panel:hover {
