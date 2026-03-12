@@ -1,0 +1,85 @@
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Subscription Management</title>
+</head>
+<body>
+<div layout:fragment="content" class="subscription-page">
+    <div id="clientKey" class="hidden" th:text="${clientKey}"></div>
+
+    <div class="subscription-header">
+        <h1>Subscription Management</h1>
+        <p>Use this screen to create subscriptions, make recurring payments, and manage your stored payment methods.</p>
+    </div>
+
+    <div class="subscription-grid">
+        <!-- Column 1: Create Subscription -->
+        <div class="subscription-panel">
+            <h2>Create Subscription</h2>
+            <p class="subscription-help">Complete a zero-value payment with Drop-in to tokenize your card for recurring payments.</p>
+            <div class="payment-container">
+                <div id="payment" class="payment"></div>
+            </div>
+        </div>
+
+        <!-- Column 2: Make Payment / Cancel -->
+        <div class="subscription-panel">
+            <h2>Make Payment</h2>
+            
+            <div class="subscription-section">
+                <h3>Make a Recurring Payment</h3>
+                <div class="subscription-form">
+                    <label for="shopperReference">Shopper Reference</label>
+                    <input id="shopperReference" type="text" placeholder="e.g., shopper-001"/>
+
+                    <label for="recurringToken">Recurring Detail Reference (Token) <span class="label-required">*</span></label>
+                    <p class="token-help">Get this from the webhook log. Copy the token value.</p>
+                    <input id="recurringToken" type="text" placeholder="Paste token from webhook here"/>
+
+                    <label for="paymentAmount">Payment Amount (EUR)</label>
+                    <div class="subscription-inline">
+                        <input id="paymentAmount" type="number" min="0" step="0.01" value="5.00"/>
+                        <button id="chargeBtn" class="button subscription-inline-button" type="button">Charge Subscription</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subscription-section">
+                <h3>Cancel Subscription</h3>
+                <div class="subscription-form">
+                    <label for="cancelShopperRef">Shopper Reference</label>
+                    <input id="cancelShopperRef" type="text" placeholder="e.g., shopper-001"/>
+
+                    <label for="cancelRecurringRef">Recurring Detail Reference (Token)</label>
+                    <input id="cancelRecurringRef" type="text" placeholder="Token from webhook"/>
+
+                    <button id="cancelBtn" class="button button-danger" type="button">Cancel Subscription</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 3: Stored Cards / Latest Response -->
+        <div class="subscription-panel">
+            <h2>Stored Cards & Response</h2>
+            
+            <div class="subscription-section">
+                <h3>Stored Cards</h3>
+                <div id="subscriptions-list" class="subscriptions-list">
+                    <p class="subscription-empty">No subscriptions yet. Create one to get started.</p>
+                </div>
+            </div>
+
+            <div class="subscription-section">
+                <h3>Latest Response</h3>
+                <pre id="subscription-log" class="subscription-log">Waiting for actions...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="/subscription.js"></script>
+</div>
+</body>
+</html>
+

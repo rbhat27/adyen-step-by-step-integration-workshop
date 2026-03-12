@@ -3,24 +3,361 @@
       layout:decorate="~{layout}">
 <head>
     <title>Workshop: Build Your Own Adyen Payment Integration</title>
+    <style>
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #00112c 0%, #0d1b2a 50%, #1b263b 100%);
+            padding: 60px 24px;
+            text-align: center;
+            border-radius: 16px;
+            margin-bottom: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(10, 191, 83, 0.1) 0%, transparent 50%);
+            animation: heroPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes heroPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .hero-tagline {
+            color: #a0aec0;
+            font-size: 1.2rem;
+            margin-bottom: 24px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(10, 191, 83, 0.2);
+            color: #0abf53;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid rgba(10, 191, 83, 0.3);
+        }
+
+        /* Features Section */
+        .features {
+            margin-bottom: 48px;
+        }
+
+        .features-title {
+            text-align: center;
+            color: #00112c;
+            font-size: 1.5rem;
+            margin-bottom: 32px;
+            font-weight: 600;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-item {
+            background: #f7f8f9;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e6e9eb;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            color: #00112c;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .feature-desc {
+            color: #687282;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        /* Enhanced Integration Cards */
+        .integration-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .integration-list-item {
+            background: #fff;
+            border-radius: 16px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #e6e9eb;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .integration-list-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00112c, #0abf53);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .integration-list-item:hover {
+            box-shadow: 0 16px 32px rgba(0, 17, 44, 0.15);
+            border-color: #0abf53;
+            transform: translateY(-4px);
+        }
+
+        .integration-list-item:hover::before {
+            transform: scaleX(1);
+        }
+
+        .integration-list-item-link {
+            padding: 32px 24px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f7f8f9 0%, #e8ecf0 100%);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .integration-list-item:hover .card-icon {
+            background: linear-gradient(135deg, #0abf53 0%, #07a045 100%);
+            transform: scale(1.1);
+        }
+
+        .card-icon img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .integration-list-item:hover .card-icon img {
+            filter: brightness(0) invert(1);
+        }
+
+        .integration-list-item-title {
+            color: #00112c;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 8px;
+            text-align: center;
+        }
+
+        .integration-list-item-subtitle {
+            color: #687282;
+            font-size: 0.9rem;
+            margin: 0;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .card-arrow {
+            margin-top: 16px;
+            color: #0abf53;
+            font-size: 1.5rem;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .integration-list-item:hover .card-arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #f7f8f9 0%, #e8ecf0 100%);
+            padding: 40px 24px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid #e6e9eb;
+        }
+
+        .cta-title {
+            color: #00112c;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .cta-desc {
+            color: #687282;
+            margin-bottom: 24px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #00112c 0%, #0d1b2a 100%);
+            color: #fff;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: linear-gradient(135deg, #0abf53 0%, #07a045 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(10, 191, 83, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+
+            .hero-tagline {
+                font-size: 1rem;
+            }
+
+            .integration-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
 <div layout:fragment="content">
     <div class='main-container'>
-        <div class="info">
-            <h1>Workshop: Build Your Own Adyen Payment Integration</h1>
-            <p>In this workshop, we'll go over a step-by-step guide to building your own payment integration with Adyen. We'll guide you through the steps needed to integrate with Adyen and make your first payment on TEST. This includes the credentials, configuration, API requests (using the Java Adyen library, `/paymentMethods`, `/payments`, `/payments/details` endpoints and Authentication 3DS2), error handling and webhooks.</p>
-            <p>Follow the steps in the <a href="https://github.com/adyen-examples/adyen-step-by-step-integration-workshop">README</a>.</p>
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="hero-content">
+                <span class="hero-badge">🚀 Adyen Workshop</span>
+                <h1>Build Your Own Payment Integration</h1>
+                <p class="hero-tagline">Learn how to integrate Adyen's powerful payment platform step-by-step. From setup to subscriptions, master payment processing.</p>
+            </div>
         </div>
+
+        <!-- Features Section -->
+        <div class="features">
+            <h2 class="features-title">What You'll Learn</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">💳</div>
+                    <h3 class="feature-title">Payment Methods</h3>
+                    <p class="feature-desc">Integrate credit cards, digital wallets, and more</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔐</div>
+                    <h3 class="feature-title">3DS2 Security</h3>
+                    <p class="feature-desc">Implement secure authentication</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔄</div>
+                    <h3 class="feature-title">Tokenization</h3>
+                    <p class="feature-desc">Save cards for recurring payments</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📡</div>
+                    <h3 class="feature-title">Webhooks</h3>
+                    <p class="feature-desc">Receive real-time payment updates</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integration Cards -->
         <ul class="integration-list">
             <li class="integration-list-item">
                 <a href="/preview?type=dropin" class="integration-list-item-link">
-                    <div class="title-container">
-                        <p class="integration-list-item-title">Start shopping</p>
+                    <div class="card-icon">
+                        <img src="/images/sunglasses.png" alt="Shop"/>
                     </div>
+                    <p class="integration-list-item-title">Start Shopping</p>
+                    <p class="integration-list-item-subtitle">Experience a complete checkout flow with drop-in integration</p>
+                    <span class="card-arrow">→</span>
+                </a>
+            </li>
+            <li class="integration-list-item">
+                <a href="/subscription" class="integration-list-item-link">
+                    <div class="card-icon">
+                        <img src="/images/headphones.png" alt="Subscription"/>
+                    </div>
+                    <p class="integration-list-item-title">Subscriptions</p>
+                    <p class="integration-list-item-subtitle">Manage recurring payments with tokenized cards</p>
+                    <span class="card-arrow">→</span>
+                </a>
+            </li>
+            <li class="integration-list-item">
+                <a href="/preauthorisation" class="integration-list-item-link">
+                    <div class="card-icon">
+                        <img src="/images/mystore-logo.svg" alt="Preauth"/>
+                    </div>
+                    <p class="integration-list-item-title">Preauthorisation</p>
+                    <p class="integration-list-item-subtitle">Reserve funds before capturing for services</p>
+                    <span class="card-arrow">→</span>
                 </a>
             </li>
         </ul>
+
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <h2 class="cta-title">Ready to Get Started?</h2>
+            <p class="cta-desc">Follow our step-by-step guide in the README to set up your development environment and make your first test payment.</p>
+            <a href="https://github.com/adyen-examples/adyen-step-by-step-integration-workshop" target="_blank" class="cta-button">View Documentation →</a>
+        </div>
     </div>
 </div>
 </body>

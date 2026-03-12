@@ -1,0 +1,91 @@
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Preauthorisation Test Screen</title>
+</head>
+<body>
+<div layout:fragment="content" class="subscription-page">
+    <div id="clientKey" class="hidden" th:text="${clientKey}"></div>
+
+    <div class="subscription-header">
+        <h1>Preauthorisation Test</h1>
+        <p>Use this screen to preauthorise, adjust, capture, cancel, and refund payments for the flows in README_PREAUTHORISATION.md.</p>
+    </div>
+
+    <div class="subscription-grid">
+        <div class="subscription-panel">
+            <h2>1) Preauthorise a payment</h2>
+            <p class="subscription-help">Complete a payment with Drop-in. The PSP reference will be saved automatically.</p>
+            <div class="payment-container">
+                <div id="payment" class="payment"></div>
+            </div>
+        </div>
+
+        <div class="subscription-panel">
+            <h2>2) Modify / Capture / Cancel / Refund</h2>
+            
+            <div class="subscription-section">
+                <div class="subscription-form">
+                    <label for="pspReference">PSP Reference</label>
+                    <div class="subscription-inline">
+                        <input id="pspReference" type="text" placeholder="PSP reference from preauthorisation"/>
+                        <button id="use-last-psp" class="button subscription-inline-button" type="button">Use last PSP</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subscription-section">
+                <h3>Adjust Authorisation</h3>
+                <div class="subscription-form">
+                    <label for="modifyAmount">Modify amount (minor units)</label>
+                    <div class="subscription-inline">
+                        <input id="modifyAmount" type="number" min="0" value="1200"/>
+                        <button id="modify-btn" class="button subscription-inline-button" type="button">Adjust</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subscription-section">
+                <h3>Capture Payment</h3>
+                <div class="subscription-form">
+                    <label for="captureAmount">Capture amount (minor units)</label>
+                    <div class="subscription-inline">
+                        <input id="captureAmount" type="number" min="0" value="1000"/>
+                        <button id="capture-btn" class="button subscription-inline-button" type="button">Capture</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subscription-section">
+                <h3>Refund Payment</h3>
+                <div class="subscription-form">
+                    <label for="refundAmount">Refund amount (minor units)</label>
+                    <div class="subscription-inline">
+                        <input id="refundAmount" type="number" min="0" value="500"/>
+                        <button id="refund-btn" class="button subscription-inline-button" type="button">Refund</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subscription-section">
+                <h3>Cancel Payment</h3>
+                <div class="subscription-form">
+                    <button id="cancel-btn" class="button button-danger" type="button">Cancel Payment</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Latest Response Log -->
+        <div class="subscription-panel">
+            <h2>3) Latest Response</h2>
+            <pre id="preauth-log" class="subscription-log">Waiting for actions...</pre>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="/preauthorisation.js"></script>
+</div>
+</body>
+</html>
+

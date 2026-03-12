@@ -4,9 +4,11 @@ import com.adyen.Client;
 import com.adyen.Config;
 import com.adyen.enums.Environment;
 import com.adyen.service.checkout.PaymentsApi;
+import com.adyen.service.PaymentApi;
 import com.adyen.util.HMACValidator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class DependencyInjectionConfiguration {
@@ -20,7 +22,8 @@ public class DependencyInjectionConfiguration {
     Client client() {
         // Step 4
         var config = new Config();
-
+        config.setApiKey(applicationConfiguration.getAdyenApiKey()); // We now use the Adyen API Key
+        config.setEnvironment(Environment.TEST);
         return new Client(config);
     }
 
@@ -30,7 +33,17 @@ public class DependencyInjectionConfiguration {
     }
 
     @Bean
+    PaymentApi paymentApi(){
+        return new PaymentApi(client());
+    }
+
+    @Bean
     HMACValidator hmacValidator() {
         return new HMACValidator();
+    }
+
+    @Bean
+    RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }
